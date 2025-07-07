@@ -1,50 +1,45 @@
 "use client"
 
 import * as React from "react"
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
 import { cn } from "@/lib/utils"
 
-const Avatar = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
-      className
-    )}
-    {...props}
-  />
-))
-Avatar.displayName = AvatarPrimitive.Root.displayName
+const avatarImages = {
+  "avatar-1": "/avatars/av1.jpg",
+  "avatar-2": "/avatars/av2.jpg",
+  "avatar-3": "/avatars/av3.jpg",
+  "avatar-4": "/avatars/av4.jpg",
+  "avatar-5": "/avatars/av5.jpg",
+  "avatar-6": "/avatars/av6.jpg",
+  "avatar-7": "/avatars/av7.jpg",
+  "avatar-8": "/avatars/av8.jpg",
+}
 
-const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-))
-AvatarImage.displayName = AvatarPrimitive.Image.displayName
+interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
+  avatarId?: keyof typeof avatarImages
+  className?: string
+}
 
-const AvatarFallback = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Fallback>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Fallback
-    ref={ref}
-    className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-muted",
-      className
-    )}
-    {...props}
-  />
-))
-AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
+  ({ avatarId = "avatar-1", className, ...props }, ref) => {
+    const src = avatarImages[avatarId]
 
-export { Avatar, AvatarImage, AvatarFallback }
+    return (
+      <div
+        ref={ref}
+        className={cn("h-10 w-10 rounded-full overflow-hidden border border-border", className)}
+        {...props}
+      >
+        <img
+          src={src}
+          alt="User avatar"
+          className="h-full w-full object-cover"
+        />
+      </div>
+    )
+  }
+)
+
+Avatar.displayName = "Avatar"
+
+export { Avatar }
