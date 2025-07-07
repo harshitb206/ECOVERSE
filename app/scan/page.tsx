@@ -14,30 +14,32 @@ import { useToast } from "@/hooks/use-toast"
 import BarcodeScanner from "@/components/barcode-scanner"
 import RewardsNotification, { useRewardsNotification } from "@/components/rewards-notification"
 
-
 interface ProductData {
-  barcode: string
-  product: string
-  co2_emission: number
-  category?: string
-  confidence?: 'high' | 'medium' | 'low'
-  calculation?: string
-  brand?: string
-  description?: string
-  sustainabilityScore?: string
-  image?: string
-  transportDistance?: string
-  packaging?: string
-  certifications?: string[]
+  barcode: string;
+  product: string;
+  co2_emission: number;
+  category?: string;
+  confidence?: "high" | "medium" | "low";
+  calculation?: string;
+  brand?: string;
+  description?: string;
+  sustainabilityScore?: string;
+  image?: string;
+  transportDistance?: string;
+  certifications?: string[];
+  packaging?: {
+    material: string;
+    recyclable: boolean;
+    biodegradable: boolean;
+    inferred?: boolean;
+  };
 }
-
 
 export default function ScanPage() {
   const [barcode, setBarcode] = useState("")
   const [product, setProduct] = useState<ProductData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isScanning, setIsScanning] = useState(false)
-
   const [scanLock, setScanLock] = useState(false)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const { updateUserStats, user } = useAuth()
@@ -47,7 +49,7 @@ export default function ScanPage() {
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // Use back camera if available
+        video: { facingMode: "environment" },
       })
       setStream(mediaStream)
       setIsScanning(true)
@@ -69,156 +71,111 @@ export default function ScanPage() {
   }
 
   const handleScan = async (scanned?: string) => {
-  if (scanLock) return;
-  setScanLock(true);
+    if (scanLock) return
+    setScanLock(true)
 
-  const actualBarcode = (scanned || barcode).trim();
-
-  if (!actualBarcode) {
-    toast({
-      title: "Please enter a barcode",
-      description: "Enter a valid barcode to scan the product.",
-      variant: "destructive",
-    });
-    setScanLock(false);
-    return;
-  }
-
-  setIsLoading(true);
-
-  try {
-    const res = await fetch("/api/scan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ barcode: actualBarcode, userEmail: user?.email }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || data.error || !data.productName) {
-      throw new Error("Product not found in API");
+    const actualBarcode = (scanned || barcode).trim()
+    if (!actualBarcode) {
+      toast({
+        title: "Please enter a barcode",
+        description: "Enter a valid barcode to scan the product.",
+        variant: "destructive",
+      })
+      setScanLock(false)
+      return
     }
 
-    setProduct({
-      barcode: actualBarcode,
-      product: data.productName,
-      brand: data.brand || "Unknown",
-      category: data.category || "Unknown",
-      co2_emission: parseFloat(data.carbonEstimate),
-      confidence: data.confidence,
-      calculation: data.calculation,
-      sustainabilityScore: "B",
-      description: `${data.calculation || "Calculated using scientific data"}`,
-      image: "/placeholder.svg",
-      certifications: [],
-      packaging: "Unknown",
-      transportDistance: "Unknown",
-    });
-
-    toast({
-      title: "Product found!",
-      description: `Carbon impact: ${data.carbonEstimate}kg CO₂ (${data.confidence} confidence)`,
-    });
-
-    // Show reward notifications if rewards were earned
-    if (data.rewards) {
-      const { pointsEarned, pointsType, leveledUp, newAchievements } = data.rewards;
-      
-      if (pointsEarned && pointsEarned > 0) {
-        showNotification({
-          type: 'points',
-          message: `Great job! You earned ${pointsEarned} reward points for scanning this product.`,
-          points: pointsEarned,
-          pointsType: pointsType
-        });
-      }
-
-      if (leveledUp) {
-        setTimeout(() => {
-          showNotification({
-            type: 'level_up',
-            message: `Congratulations! You've reached level ${data.rewards.level}!`,
-            level: data.rewards.level
-          });
-        }, 2000);
-      }
-
-      if (newAchievements && newAchievements.length > 0) {
-        newAchievements.forEach((achievement: any, index: number) => {
-          setTimeout(() => {
-            showNotification({
-              type: 'achievement',
-              message: `Achievement unlocked: ${achievement.name}!`,
-              points: achievement.points
-            });
-          }, 3000 + (index * 1500));
-        });
-      }
-    }
-
-    updateUserStats?.(parseFloat(data.carbonEstimate));
-  } catch (err) {
-    console.warn("API failed, trying fallback JSON...");
+    setIsLoading(true)
 
     try {
-      // Step 3: Fallback to local barcode-data.json
-      const res = await fetch("/barcode-data.json");
-      const data: ProductData[] = await res.json();
-      const matched = data.find((item) => item.barcode === actualBarcode);
+      const res = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ barcode: actualBarcode, userEmail: user?.email }),
+      })
 
-      if (matched) {
-        setProduct({
-          ...matched,
-          image: matched.image || "/placeholder.svg",
-          sustainabilityScore: matched.sustainabilityScore || "Unknown",
-          brand: matched.brand || "N/A",
-          category: matched.category || "N/A",
-          transportDistance: matched.transportDistance || "N/A",
-          packaging: matched.packaging || "N/A",
-          certifications: matched.certifications || [],
-          description: matched.description || "No description available.",
-        });
+      const data = await res.json()
 
-        updateUserStats?.(matched.co2_emission);
+      if (!res.ok || data.error || !data.productName) throw new Error("Product not found in API")
 
-        toast({
-          title: matched.product,
-          description: `CO₂ Emission: ${matched.co2_emission} kg added to your tracking.`,
-        });
-      } else {
-        throw new Error("Barcode not found in fallback JSON");
+      setProduct({
+        barcode: actualBarcode,
+        product: data.productName,
+        brand: data.brand || "Unknown",
+        category: data.category || "Unknown",
+        co2_emission: parseFloat(data.carbonEstimate),
+        confidence: data.confidence,
+        calculation: data.calculation,
+        sustainabilityScore: "B",
+        description: `${data.calculation || "Calculated using scientific data"}`,
+        image: "/placeholder.svg",
+        certifications: [],
+        packaging: data.packaging || {
+          material: "Unknown",
+          recyclable: false,
+          biodegradable: false,
+        },
+        transportDistance: "Unknown",
+      })
+
+      toast({
+        title: "Product found!",
+        description: `Carbon impact: ${data.carbonEstimate}kg CO₂ (${data.confidence} confidence)`,
+      })
+
+      if (data.rewards) {
+        const { pointsEarned, pointsType, leveledUp, newAchievements } = data.rewards
+        if (pointsEarned > 0) {
+          showNotification({
+            type: 'points',
+            message: `Great job! You earned ${pointsEarned} reward points for scanning this product.`,
+            points: pointsEarned,
+            pointsType
+          })
+        }
+        if (leveledUp) {
+          setTimeout(() => {
+            showNotification({
+              type: 'level_up',
+              message: `Congratulations! You've reached level ${data.rewards.level}!`,
+              level: data.rewards.level
+            })
+          }, 2000)
+        }
+        if (newAchievements?.length) {
+          newAchievements.forEach((achievement: any, index: number) => {
+            setTimeout(() => {
+              showNotification({
+                type: 'achievement',
+                message: `Achievement unlocked: ${achievement.name}!`,
+                points: achievement.points
+              })
+            }, 3000 + index * 1500)
+          })
+        }
       }
+
+      updateUserStats?.(parseFloat(data.carbonEstimate))
     } catch (err) {
-      console.error("Fallback failed:", err);
       toast({
         title: "Error",
         description: "Could not find product in API or local data.",
         variant: "destructive",
-      });
-
-      setProduct(null);
+      })
+      setProduct(null)
+    } finally {
+      setIsLoading(false)
+      setScanLock(false)
     }
-  } finally {
-    setIsLoading(false);
-    setScanLock(false);
   }
-};
-
 
   const getSustainabilityColor = (score: string) => {
     switch (score) {
-      case "A":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "B+":
-      case "B":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "C":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "D":
-      case "F":
-        return "bg-red-100 text-red-800 border-red-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+      case "A": return "bg-green-100 text-green-800 border-green-200"
+      case "B+": case "B": return "bg-blue-100 text-blue-800 border-blue-200"
+      case "C": return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      case "D": case "F": return "bg-red-100 text-red-800 border-red-200"
+      default: return "bg-gray-100 text-gray-800 border-gray-200"
     }
   }
 
@@ -241,8 +198,7 @@ export default function ScanPage() {
         <Card className="dark-card border-gray-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
-              <Scan className="h-5 w-5" />
-              Product Scanner
+              <Scan className="h-5 w-5" /> Product Scanner
             </CardTitle>
             <CardDescription className="text-gray-400">
               Enter a barcode manually, use your camera to scan, or try the demo barcodes below
@@ -254,12 +210,10 @@ export default function ScanPage() {
               <div className="flex gap-2">
                 <Input
                   id="barcode"
-                  placeholder="Enter barcode (try: 123456789012, 987654321098, 456789123456)"
+                  placeholder="Enter barcode"
                   value={barcode}
                   onChange={(e) => setBarcode(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !scanLock) handleScan()
-                  }}
+                  onKeyDown={(e) => e.key === "Enter" && !scanLock && handleScan()}
                 />
                 <Button onClick={() => setIsScanning(true)} variant="outline">
                   <Camera className="h-4 w-4" />
@@ -272,17 +226,6 @@ export default function ScanPage() {
                   )}
                 </Button>
               </div>
-            </div>
-
-            <div className="text-sm text-gray-400">
-              <p>
-                <strong className="text-gray-300">Try these sample barcodes:</strong>
-              </p>
-              <ul className="mt-1 space-y-1 text-gray-500">
-                <li>• 123456789012 (Organic Bananas - Low impact)</li>
-                <li>• 987654321098 (Beef Patties - High impact)</li>
-                <li>• 456789123456 (Almond Milk - Medium impact)</li>
-              </ul>
             </div>
           </CardContent>
         </Card>
@@ -300,8 +243,7 @@ export default function ScanPage() {
                     <Badge variant="outline" className={
                       product.confidence === 'high' ? 'border-green-500 text-green-400' :
                       product.confidence === 'medium' ? 'border-yellow-500 text-yellow-400' :
-                      'border-red-500 text-red-400'
-                    }>
+                      'border-red-500 text-red-400'}>
                       {product.confidence} confidence
                     </Badge>
                   )}
@@ -313,14 +255,7 @@ export default function ScanPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  {/* <img
-                    // src={product.image}
-                    alt={product.product}
-                    className="w-full h-48 object-cover rounded-lg bg-gray-100"
-                  /> */}
-                </div>
-
+                <div></div>
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Carbon Footprint</h3>
@@ -347,33 +282,32 @@ export default function ScanPage() {
 
                   <Separator />
 
-                  {/* <div>
-                    <h4 className="font-medium mb-2 text-gray-300">Sustainability Details</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between"> 
-                        <span className="text-gray-400">Transport Distance:</span>
-                        <span className="text-gray-300">{product.transportDistance}</span>
+                  <div>
+                    <h4 className="font-medium mb-2 text-gray-300">♻️ Packaging Info</h4>
+                    {product.packaging ? (
+                      <div className="space-y-1 text-sm text-gray-400">
+                        <div className="flex justify-between">
+                          <span>Material:</span>
+                          <span className="text-gray-300">{product.packaging.material}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Recyclable:</span>
+                          <span className="text-gray-300">{product.packaging.recyclable ? "✅ Yes" : "❌ No"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Biodegradable:</span>
+                          <span className="text-gray-300">{product.packaging.biodegradable ? "✅ Yes" : "❌ No"}</span>
+                        </div>
+                        {product.packaging.inferred && (
+                          <p className="text-yellow-400 text-xs mt-1">
+                            ⚠️ Estimated based on product category
+                          </p>
+                        )}
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Packaging:</span>
-                        <span className="text-gray-300">{product.packaging}</span>
-                      </div>
-                     </div>
-                  </div> */}
-
-                  {product.certifications && product.certifications.length > 0 && (
-                    <div>
-                      <h4 className="font-medium mb-2 text-gray-300">Certifications</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {product.certifications.map((cert: string) => (
-                          <Badge key={cert} variant="secondary" className="bg-green-100 text-green-800">
-                            <Leaf className="h-3 w-3 mr-1" />
-                            {cert}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-gray-500">No packaging data available.</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -388,28 +322,21 @@ export default function ScanPage() {
         {isScanning && (
           <BarcodeScanner
             onScan={(scannedBarcode) => {
-
               if (!scanLock) {
                 setBarcode(scannedBarcode)
                 setIsScanning(false)
-                handleScan()
+                handleScan(scannedBarcode)
               }
-              setBarcode(scannedBarcode)
-              setIsScanning(false)
-              handleScan(scannedBarcode)
-
             }}
             onClose={() => setIsScanning(false)}
           />
         )}
       </div>
-      
-      {/* Rewards Notification */}
-      <RewardsNotification 
+
+      <RewardsNotification
         notification={notification}
         onDismiss={dismissNotification}
       />
     </DashboardLayout>
   )
 }
-
