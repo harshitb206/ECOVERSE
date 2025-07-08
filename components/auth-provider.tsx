@@ -19,6 +19,7 @@ interface User {
   _id: string
   email: string
   name: string
+  avatarId?: string
   monthlyCarbon: number
   totalScanned: number
   joinedAt: string
@@ -45,11 +46,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("ecoverse-user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
+  const storedUser = localStorage.getItem("ecoverse-user")
+  const avatarId = localStorage.getItem("avatarId")
+  if (storedUser) {
+    const parsed = JSON.parse(storedUser)
+    const userWithAvatar = { ...parsed, avatarId } // ✅ merge avatarId
+    setUser(userWithAvatar)
+  }
+}, [])
+
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
