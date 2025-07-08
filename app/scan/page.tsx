@@ -89,10 +89,14 @@ export default function ScanPage() {
 
     try {
       const res = await fetch("/api/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barcode: actualBarcode, userEmail: user?.email }),
-      })
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    barcode: actualBarcode,
+    userEmail: "test@example.com"  // 👈 TEMP: use the same email from debug-create-user
+  }),
+})
+
 
       const data = await res.json()
 
