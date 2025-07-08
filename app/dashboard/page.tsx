@@ -47,14 +47,14 @@ export default function Dashboard() {
     try {
       // Fetch leaderboard data to get user rank and stats
       const [leaderboardResponse, rewardsResponse] = await Promise.all([
-        fetch('/api/leaderboard'),
-        fetch(`/api/rewards?email=${encodeURIComponent(user?.email || '')}`)
+        fetch('/api/leaderboard', { cache: 'no-store' }),
+        fetch(`/api/rewards?email=${encodeURIComponent(user?.email || '')}`, { cache: 'no-store' })
       ])
-      
+
       if (leaderboardResponse.ok) {
         const leaderboardData = await leaderboardResponse.json()
         const currentUser = leaderboardData.leaderboard.find((u: any) => u.email === user?.email)
-        
+
         let stats: UserStats = {
           monthlyCarbon: currentUser?.monthlyCarbon || 0,
           totalScanned: currentUser?.totalScanned || 0,
@@ -65,7 +65,7 @@ export default function Dashboard() {
           level: currentUser?.level || 1,
           achievementCount: currentUser?.achievementCount || 0
         }
-        
+
         // Add detailed points data from rewards API
         if (rewardsResponse.ok) {
           const rewardsData = await rewardsResponse.json()
@@ -73,7 +73,7 @@ export default function Dashboard() {
           stats.level = rewardsData.level
           stats.achievementCount = rewardsData.achievements?.length || 0
         }
-        
+
         setUserStats(stats)
       }
     } catch (error) {
@@ -204,18 +204,16 @@ export default function Dashboard() {
           <Card className="dark-card border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-300">Level</CardTitle>
-              <Star className={`h-4 w-4 ${
-                (userStats?.level || 1) >= 10 ? 'text-purple-400' : 
-                (userStats?.level || 1) >= 7 ? 'text-yellow-400' : 
-                (userStats?.level || 1) >= 4 ? 'text-blue-400' : 'text-green-400'
-              }`} />
+              <Star className={`h-4 w-4 ${(userStats?.level || 1) >= 10 ? 'text-purple-400' :
+                  (userStats?.level || 1) >= 7 ? 'text-yellow-400' :
+                    (userStats?.level || 1) >= 4 ? 'text-blue-400' : 'text-green-400'
+                }`} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${
-                (userStats?.level || 1) >= 10 ? 'text-purple-400' : 
-                (userStats?.level || 1) >= 7 ? 'text-yellow-400' : 
-                (userStats?.level || 1) >= 4 ? 'text-blue-400' : 'text-green-400'
-              }`}>
+              <div className={`text-2xl font-bold ${(userStats?.level || 1) >= 10 ? 'text-purple-400' :
+                  (userStats?.level || 1) >= 7 ? 'text-yellow-400' :
+                    (userStats?.level || 1) >= 4 ? 'text-blue-400' : 'text-green-400'
+                }`}>
                 {loading ? "..." : userStats?.level || 1}
               </div>
               <p className="text-xs text-gray-500">
@@ -248,24 +246,23 @@ export default function Dashboard() {
               <Leaf className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${
-                userStats && userStats.monthlyCarbon < 10 && userStats.totalScanned >= 15 ? 'text-gray-300' :
-                userStats && userStats.monthlyCarbon < 20 && userStats.totalScanned >= 10 ? 'text-yellow-400' :
-                userStats && userStats.monthlyCarbon < 30 && userStats.totalScanned >= 5 ? 'text-gray-400' :
-                userStats && userStats.monthlyCarbon < 40 ? 'text-amber-600' : 'text-gray-500'
-              }`}>
-                {loading ? "..." : 
-                 userStats && userStats.monthlyCarbon < 10 && userStats.totalScanned >= 15 ? "Platinum" :
-                 userStats && userStats.monthlyCarbon < 20 && userStats.totalScanned >= 10 ? "Gold" :
-                 userStats && userStats.monthlyCarbon < 30 && userStats.totalScanned >= 5 ? "Silver" :
-                 userStats && userStats.monthlyCarbon < 40 ? "Bronze" : "Beginner"
+              <div className={`text-2xl font-bold ${userStats && userStats.monthlyCarbon < 10 && userStats.totalScanned >= 15 ? 'text-gray-300' :
+                  userStats && userStats.monthlyCarbon < 20 && userStats.totalScanned >= 10 ? 'text-yellow-400' :
+                    userStats && userStats.monthlyCarbon < 30 && userStats.totalScanned >= 5 ? 'text-gray-400' :
+                      userStats && userStats.monthlyCarbon < 40 ? 'text-amber-600' : 'text-gray-500'
+                }`}>
+                {loading ? "..." :
+                  userStats && userStats.monthlyCarbon < 10 && userStats.totalScanned >= 15 ? "Platinum" :
+                    userStats && userStats.monthlyCarbon < 20 && userStats.totalScanned >= 10 ? "Gold" :
+                      userStats && userStats.monthlyCarbon < 30 && userStats.totalScanned >= 5 ? "Silver" :
+                        userStats && userStats.monthlyCarbon < 40 ? "Bronze" : "Beginner"
                 }
               </div>
               <p className="text-xs text-gray-500">
                 {userStats && userStats.monthlyCarbon < 10 && userStats.totalScanned >= 15 ? "Ultimate eco-warrior" :
-                 userStats && userStats.monthlyCarbon < 20 && userStats.totalScanned >= 10 ? "Exceptional sustainability" :
-                 userStats && userStats.monthlyCarbon < 30 && userStats.totalScanned >= 5 ? "Great progress" :
-                 userStats && userStats.monthlyCarbon < 40 ? "Getting started" : "Room for improvement"
+                  userStats && userStats.monthlyCarbon < 20 && userStats.totalScanned >= 10 ? "Exceptional sustainability" :
+                    userStats && userStats.monthlyCarbon < 30 && userStats.totalScanned >= 5 ? "Great progress" :
+                      userStats && userStats.monthlyCarbon < 40 ? "Getting started" : "Room for improvement"
                 }
               </p>
             </CardContent>

@@ -3,17 +3,15 @@ import axios from "axios"
 import dbConnect from "@/lib/mongodb"
 import User from "@/models/User"
 import { calculateCarbonFootprint } from "@/lib/carbon-calculator"
-import { 
-  calculateScanPoints, 
-  calculateLevel, 
-  checkAchievements, 
+import {
+  calculateScanPoints,
+  calculateLevel,
+  checkAchievements,
   calculateMonthlyBonus,
   confirmPendingPoints,
-  shouldConfirmImmediately,
   getUserPointsSummary,
-  POINT_REWARDS 
 } from "@/lib/rewards-system"
-import { inferPackaging } from "@/lib/packaging-inference" // ✅ New import
+import { inferPackaging } from "@/lib/packaging-inference"
 
 type OpenFoodFactsResponse = {
   product: {
@@ -36,7 +34,7 @@ export async function POST(req: Request) {
   try {
     const productRes = await axios.get<OpenFoodFactsResponse>(
       `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
-    );
+    )
 
     const product = productRes.data.product
 
@@ -44,79 +42,131 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
-    // ✅ Extract categories and infer packaging info
-    const categories = (product.categories_tags || []).map(cat => cat.replace("en:", ""));
-    const packaging = inferPackaging(categories);
+    const categories = (product.categories_tags || []).map(cat => cat.replace("en:", ""))
+    const packaging = inferPackaging(categories)
 
-    // Calculate carbon footprint
-    const carbonData = calculateCarbonFootprint(
-      product.product_name, 
-      product.brands
-    )
+    const carbonData = calculateCarbonFootprint(product.product_name, product.brands)
+    const carbonEstimate = carbonData.carbonFootprint
 
-    // Update user stats in database if userEmail is provided
     if (userEmail) {
       try {
         await dbConnect()
-        
+
         const user = await User.findOne({ email: userEmail })
 
-        if (user) {
-          // (unchanged logic here...) 👇
-          // ...
-          // [all your user logic remains unchanged]
-          // ...
+        if (!user) {
+          console.error("❌ No user found with email:", userEmail)
+          return NextResponse.json({ error: "User not found" }, { status: 404 })
+        } else {
+          console.log("✅ User found:", user.email)
+        }
 
-          await user.save()
-          const pointsSummary = getUserPointsSummary(user)
+
+        if (user) {
+          const isFirstScan = (user.totalScanned ?? 0) === 0
+          const streakCount = user.streakCount ?? 0
+          const totalScans = user.totalScanned ?? 0
+
+          const pointsData = calculateScanPoints
+            ? calculateScanPoints(carbonEstimate, isFirstScan, streakCount, totalScans)
+            : { points: 0, reasons: [], isConfirmed: false }
+
+          const isConfirmed = pointsData.isConfirmed
+          const pointsEarned = pointsData.points
+
+          // ✅ Update user in DB
+          const updateFields: any = {
+            $inc: {
+              monthlyCarbon: carbonEstimate,
+              totalScanned: 1,
+              ...(isConfirmed
+                ? { "points.confirmed": pointsEarned }
+                : { "points.unconfirmed": pointsEarned })
+            },
+            $set: {
+              updatedAt: new Date()
+            }
+          }
+
+          const updatedUser = await User.findOneAndUpdate(
+            { email: userEmail },
+            updateFields,
+            { new: true }
+          )
+
+          if (!updatedUser) {
+            return NextResponse.json({ error: "Failed to update user" }, { status: 500 })
+          }
+
+          const oldLevel = user.level || 1
+          const levelData = calculateLevel ? calculateLevel(updatedUser) : { level: oldLevel }
+          const earnedAchievements = checkAchievements ? checkAchievements(updatedUser) : []
+          const monthlyBonus = calculateMonthlyBonus ? calculateMonthlyBonus(updatedUser) : 0
+          const pointsSummary = getUserPointsSummary(updatedUser)
+
+          // ✅ Save new level and achievements to DB
+          updatedUser.level = levelData.level
+          updatedUser.achievements = earnedAchievements
+          await updatedUser.save()
+          console.log("✅ Updated User Saved:", updatedUser)
+
+
 
           return NextResponse.json({
             productName: product.product_name,
             brand: product.brands || "Unknown",
-            carbonEstimate: carbonData.carbonFootprint.toFixed(2),
+            carbonEstimate: carbonEstimate.toFixed(2),
             category: carbonData.category,
             confidence: carbonData.confidence,
             calculation: carbonData.calculation,
             ingredients: product.ingredients_text || "Not available",
-            packaging, // ✅ Include packaging info
+            packaging,
             rewards: {
-              pointsEarned: pointsData.points,
+              pointsEarned,
               pointsType: isConfirmed ? 'confirmed' : 'unconfirmed',
               reasons: pointsData.reasons,
-              pointsSummary: pointsSummary,
-              level: user.level,
+              pointsSummary,
+              level: updatedUser.level,
               leveledUp: levelData.level > oldLevel,
               newAchievements: earnedAchievements,
-              streakCount: user.streakCount,
-              monthlyBonus: monthlyBonus,
-              sustainabilityTier: user.monthlyCarbon < 10 && user.totalScanned >= 15 ? 'Platinum' :
-                                user.monthlyCarbon < 20 && user.totalScanned >= 10 ? 'Gold' :
-                                user.monthlyCarbon < 30 && user.totalScanned >= 5 ? 'Silver' :
-                                user.monthlyCarbon < 40 ? 'Bronze' : 'Beginner',
-              pendingConfirmationInfo: confirmationData.confirmedPoints > 0 ? {
-                pointsConfirmed: confirmationData.confirmedPoints,
-                transactionsConfirmed: confirmationData.confirmedTransactions.length
-              } : null
+              streakCount: updatedUser.streakCount,
+              monthlyBonus,
+              sustainabilityTier:
+                updatedUser.monthlyCarbon < 10 && updatedUser.totalScanned >= 15 ? 'Platinum' :
+                  updatedUser.monthlyCarbon < 20 && updatedUser.totalScanned >= 10 ? 'Gold' :
+                    updatedUser.monthlyCarbon < 30 && updatedUser.totalScanned >= 5 ? 'Silver' :
+                      updatedUser.monthlyCarbon < 40 ? 'Bronze' : 'Beginner',
+              pendingConfirmationInfo: (() => {
+                const confirmationData = confirmPendingPoints
+                  ? confirmPendingPoints(updatedUser)
+                  : { confirmedPoints: 0, confirmedTransactions: [] }
+
+                return confirmationData.confirmedPoints > 0
+                  ? {
+                    pointsConfirmed: confirmationData.confirmedPoints,
+                    transactionsConfirmed: confirmationData.confirmedTransactions.length
+                  }
+                  : null
+              })()
             }
           })
         }
       } catch (dbError) {
         console.error("🔥 Failed to update user stats:", dbError)
+        return NextResponse.json({ error: "Database error" }, { status: 500 })
       }
     }
 
-    // ✅ Return packaging info even if user is not logged in
     return NextResponse.json({
       productName: product.product_name,
       brand: product.brands || "Unknown",
-      carbonEstimate: carbonData.carbonFootprint.toFixed(2),
+      carbonEstimate: carbonEstimate.toFixed(2),
       category: carbonData.category,
       confidence: carbonData.confidence,
       calculation: carbonData.calculation,
       ingredients: product.ingredients_text || "Not available",
-      packaging // ✅ Include packaging info
+      packaging
     })
-
   } catch (error) {
     console.error("🔥 Error in scan API:", error)
     return NextResponse.json({ error: "Failed to scan product" }, { status: 500 })
