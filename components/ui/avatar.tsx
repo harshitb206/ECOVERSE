@@ -4,7 +4,8 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-const avatarImages = {
+
+export const avatarImages = {
   "avatar-1": "/avatars/av1.jpg",
   "avatar-2": "/avatars/av2.jpg",
   "avatar-3": "/avatars/av3.jpg",
@@ -14,9 +15,10 @@ const avatarImages = {
   "avatar-7": "/avatars/av7.jpg",
   "avatar-8": "/avatars/av8.jpg",
 }
+export type AvatarId = keyof typeof avatarImages
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
-  avatarId?: keyof typeof avatarImages
+  avatarId?: AvatarId
   className?: string
 }
 
@@ -33,7 +35,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         <img
           src={src}
           alt="User avatar"
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover rounded-full"
         />
       </div>
     )

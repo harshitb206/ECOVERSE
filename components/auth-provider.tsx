@@ -14,12 +14,13 @@ import {
 } from "firebase/auth"
 import { auth, googleProvider } from "@/lib/firebase"
 import { toast } from "@/components/ui/use-toast" // ✅ Import toast
+import type { AvatarId } from "./ui/avatar"
 
 interface User {
   _id: string
   email: string
   name: string
-  avatarId?: string
+  avatarId?: AvatarId
   monthlyCarbon: number
   totalScanned: number
   joinedAt: string
@@ -32,6 +33,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<boolean>
   logout: () => void
   updateUserStats: (carbonAdded: number) => void
+  updateAvatar: (avatarId: AvatarId) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -182,6 +184,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("ecoverse-user", JSON.stringify(updatedUser))
     }
   }
+  
+  const updateAvatar = (avatarId: AvatarId) => {
+  if (user) {
+    const updatedUser = {
+      ...user,
+      avatarId,
+    }
+    setUser(updatedUser)
+    localStorage.setItem("ecoverse-user", JSON.stringify(updatedUser))
+  }
+}
+
 
   return (
     <AuthContext.Provider
@@ -191,7 +205,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signup,
         signInWithGoogle,
         logout,
-        updateUserStats
+        updateUserStats,
+        updateAvatar,
       }}
     >
       {children}

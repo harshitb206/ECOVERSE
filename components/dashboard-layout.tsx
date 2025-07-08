@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar } from "@/components/ui/avatar"
+import { Avatar, AvatarId } from "@/components/ui/avatar"
 
 
 const navigation = [
@@ -41,17 +41,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Header */}
       <header className="bg-secondary border-b border-border px-6 py-4 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-2">
-          <Leaf className="text-primary h-6 w-6" />
-          <span className="font-serif text-xl text-primary">EcoVerse</span>
+          <Link href="/" className="flex items-center gap-2">
+  <img src="/logo.png" alt="EcoVerse logo" className="h-8 w-auto" />
+  <span className="font-serif text-xl text-primary text-green-900">EcoVerse</span>
+</Link>
+
         </div>
 
         <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar avatarId={user.avatarId} className="h-9 w-9" />
-
-
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                <Avatar avatarId={(user.avatarId ?? "avatar-1") as AvatarId} className="h-full w-full rounded-full" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">

@@ -22,8 +22,11 @@ import {
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { ThemeToggle } from "./theme-toggle"
+interface LandingPageProps {
+  onGetStarted?: () => void
+}
 
-export default function ModernLandingPage() {
+export default function ModernLandingPage({ onGetStarted }: LandingPageProps) {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -106,12 +109,14 @@ export default function ModernLandingPage() {
                   Sign In
                 </Button>
               </Link>
-              <Link href="/auth/signup">
-                <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                  Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              <Button
+  onClick={onGetStarted}
+  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+>
+  Get Started
+  <ArrowRight className="ml-2 h-4 w-4" />
+</Button>
+
             </div>
           </div>
         </div>

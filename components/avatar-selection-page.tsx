@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { useAuth } from "@/components/auth-provider"
+import { AvatarId } from "./ui/avatar"
 
 const avatarOptions = [
   { id: "avatar-1", label: "Leafy", src: "/avatars/av1.jpg" },
@@ -16,18 +18,16 @@ const avatarOptions = [
 ]
 
 export default function AvatarSelectionPage() {
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selected, setSelected] = useState<AvatarId | null>(null)
 
-  const handleSave = () => {
-    if (selected) {
-      localStorage.setItem("avatarId", selected)
-      const user = JSON.parse(localStorage.getItem("ecoverse-user") || "{}")
-const updatedUser = { ...user, avatarId: selected }
+const { updateAvatar } = useAuth()
 
-localStorage.setItem("ecoverse-user", JSON.stringify(updatedUser))
-window.location.href = "/dashboard"
-    }
+const handleSave = () => {
+  if (selected) {
+    updateAvatar(selected)          // ✅ update context + localStorage
+    window.location.href = "/dashboard" // ✅ redirect to dashboard
   }
+}
   
   return (
     <div className="min-h-screen bg-muted/20 py-12 px-6 md:px-16">

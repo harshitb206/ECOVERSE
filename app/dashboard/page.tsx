@@ -102,19 +102,19 @@ export default function Dashboard() {
       <div className="space-y-6">
         {/* Welcome Section */}
         <div>
-          <h1 className="text-3xl font-bold text-white">Welcome back, {user.name}! 👋</h1>
+          <h1 className="text-3xl font-bold text-green-900">Welcome back, {user.name}! 👋</h1>
           <p className="text-gray-400 mt-2">{"Here's your sustainability overview for this month."}</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-green-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Monthly CO₂</CardTitle>
+              <CardTitle className="text-sm font-medium text-green-900">Monthly CO₂</CardTitle>
               <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-green-700">
                 {loading ? "..." : `${userStats?.monthlyCarbon.toFixed(1) || 0} kg`}
               </div>
               <p className="text-xs text-gray-500">
@@ -123,26 +123,26 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-lime-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Products Scanned</CardTitle>
+              <CardTitle className="text-sm font-medium text-lime-900">Products Scanned</CardTitle>
               <Scan className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-lime-700">
                 {loading ? "..." : userStats?.totalScanned || 0}
               </div>
               <p className="text-xs text-gray-500">This month</p>
             </CardContent>
           </Card>
 
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-emerald-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Sustainability Score</CardTitle>
+              <CardTitle className="text-sm font-medium text-emerald-900">Sustainability Score</CardTitle>
               <Leaf className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-emerald-700">
                 {loading ? "..." : getSustainabilityScore(userStats?.monthlyCarbon || 0)}
               </div>
               <p className="text-xs text-gray-500">
@@ -151,13 +151,13 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-teal-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Leaderboard Rank</CardTitle>
+              <CardTitle className="text-sm font-medium text-teal-900">Leaderboard Rank</CardTitle>
               <Trophy className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-teal-700">
                 {loading ? "..." : `#${userStats?.rank || 0}`}
               </div>
               <p className="text-xs text-gray-500">
@@ -169,13 +169,13 @@ export default function Dashboard() {
 
         {/* Rewards Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-yellow-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Reward Points</CardTitle>
+              <CardTitle className="text-sm font-medium text-yellow-900">Reward Points</CardTitle>
               <Gift className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-yellow-700">
                 {loading ? "..." : userStats?.pointsSummary?.total || userStats?.rewardPoints || 0}
               </div>
               {userStats?.pointsSummary && (
@@ -201,9 +201,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-cyan-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Level</CardTitle>
+              <CardTitle className="text-sm font-medium text-cyan-900">Level</CardTitle>
               <Star className={`h-4 w-4 ${
                 (userStats?.level || 1) >= 10 ? 'text-purple-400' : 
                 (userStats?.level || 1) >= 7 ? 'text-yellow-400' : 
@@ -224,13 +224,13 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-teal-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Achievements</CardTitle>
+              <CardTitle className="text-sm font-medium text-teal-900">Achievements</CardTitle>
               <Trophy className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-teal-700">
                 {loading ? "..." : userStats?.achievementCount || 0}
               </div>
               <p className="text-xs text-gray-500">Unlocked</p>
@@ -242,9 +242,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-orange-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Sustainability Tier</CardTitle>
+              <CardTitle className="text-sm font-medium text-orange-900">Sustainability Tier</CardTitle>
               <Leaf className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -273,10 +273,10 @@ export default function Dashboard() {
         </div>
 
         {/* Monthly Progress */}
-        <Card className="dark-card border-gray-700">
+        <Card className="bg-green-100 border-none shadow-md">
           <CardHeader>
-            <CardTitle className="text-white">Monthly Carbon Goal</CardTitle>
-            <CardDescription className="text-gray-400">
+            <CardTitle className="text-green-900">Monthly Carbon Goal</CardTitle>
+            <CardDescription className="text-green-700">
               Track your progress towards your {monthlyGoal}kg CO₂ monthly goal
             </CardDescription>
           </CardHeader>
@@ -309,11 +309,11 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-teal-100 border-none shadow-md">
             <CardHeader>
-              <CardTitle className="text-white">Scan a Product</CardTitle>
+              <CardTitle className="text-teal-900">Scan a Product</CardTitle>
               <CardDescription className="text-gray-400">
-                Scan or enter a barcode to check its carbon footprint
+                Scan or enter a barcode to check its recyclability and carbon footprint
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -326,9 +326,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="dark-card border-gray-700">
+          <Card className="bg-teal-100 border-none shadow-md">
             <CardHeader>
-              <CardTitle className="text-white">View Leaderboard</CardTitle>
+              <CardTitle className="text-teal-900">View Leaderboard</CardTitle>
               <CardDescription className="text-gray-400">
                 See how you rank against other sustainable shoppers
               </CardDescription>
