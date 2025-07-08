@@ -201,14 +201,28 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-cyan-900">Level</CardTitle>
-            <Star className={`h-4 w-4 ${(userStats?.level || 1) >= 10 ? 'text-purple-400' :
-                (userStats?.level || 1) >= 7 ? 'text-yellow-400' :
-                  (userStats?.level || 1) >= 4 ? 'text-blue-400' : 'text-green-400'
+          <Card className="bg-cyan-100 border-none shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-cyan-900">Level</CardTitle>
+              <Star className={`h-4 w-4 ${
+                (userStats?.level || 1) >= 10 ? 'text-purple-400' : 
+                (userStats?.level || 1) >= 7 ? 'text-yellow-400' : 
+                (userStats?.level || 1) >= 4 ? 'text-blue-400' : 'text-green-400'
               }`} />
-          </CardHeader>
-
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${
+                (userStats?.level || 1) >= 10 ? 'text-purple-400' : 
+                (userStats?.level || 1) >= 7 ? 'text-yellow-400' : 
+                (userStats?.level || 1) >= 4 ? 'text-blue-400' : 'text-green-400'
+              }`}>
+                {loading ? "..." : userStats?.level || 1}
+              </div>
+              <p className="text-xs text-gray-500">
+                {(userStats?.level || 1) >= 15 ? 'Max Level!' : 'Current level'}
+              </p>
+            </CardContent>
+          </Card>
 
           <Card className="bg-teal-100 border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
