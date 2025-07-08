@@ -56,7 +56,7 @@ export default function RewardsPage() {
 
   const fetchRewardsData = async () => {
     try {
-      const response = await fetch(`/api/rewards?email=${encodeURIComponent(user?.email || '')}`)
+      const response = await fetch(`/api/rewards?email=test@example.com`)
       if (response.ok) {
         const data = await response.json()
         setRewardsData(data)
@@ -79,13 +79,14 @@ export default function RewardsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: user.email,
+          email: "test@example.com",
           itemId
         })
+
       })
 
       const result = await response.json()
-      
+
       if (response.ok) {
         // Show success message and refresh data
         alert(`${result.purchasedItem.name} purchased successfully!`)
@@ -289,53 +290,53 @@ export default function RewardsPage() {
             )}
 
             {/* Special Features */}
-            {rewardsData && (rewardsData.specialFeatures.streakProtectors > 0 || 
-                           rewardsData.specialFeatures.doublePointsDays > 0 || 
-                           rewardsData.specialFeatures.hasAdvancedAnalytics) && (
-              <Card className="dark-card border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Active Features</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Special items and bonuses you've unlocked
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {rewardsData.specialFeatures.streakProtectors > 0 && (
-                      <div className="p-3 rounded-lg bg-blue-900/20 border border-blue-700">
-                        <div className="flex items-center gap-2">
-                          <Shield className="h-5 w-5 text-blue-400" />
-                          <span className="text-white font-medium">Streak Protectors</span>
+            {rewardsData && (rewardsData.specialFeatures.streakProtectors > 0 ||
+              rewardsData.specialFeatures.doublePointsDays > 0 ||
+              rewardsData.specialFeatures.hasAdvancedAnalytics) && (
+                <Card className="dark-card border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="text-white">Active Features</CardTitle>
+                    <CardDescription className="text-gray-400">
+                      Special items and bonuses you've unlocked
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {rewardsData.specialFeatures.streakProtectors > 0 && (
+                        <div className="p-3 rounded-lg bg-blue-900/20 border border-blue-700">
+                          <div className="flex items-center gap-2">
+                            <Shield className="h-5 w-5 text-blue-400" />
+                            <span className="text-white font-medium">Streak Protectors</span>
+                          </div>
+                          <p className="text-sm text-blue-300 mt-1">
+                            {rewardsData.specialFeatures.streakProtectors} available
+                          </p>
                         </div>
-                        <p className="text-sm text-blue-300 mt-1">
-                          {rewardsData.specialFeatures.streakProtectors} available
-                        </p>
-                      </div>
-                    )}
-                    {rewardsData.specialFeatures.doublePointsDays > 0 && (
-                      <div className="p-3 rounded-lg bg-yellow-900/20 border border-yellow-700">
-                        <div className="flex items-center gap-2">
-                          <Zap className="h-5 w-5 text-yellow-400" />
-                          <span className="text-white font-medium">Double Points Days</span>
+                      )}
+                      {rewardsData.specialFeatures.doublePointsDays > 0 && (
+                        <div className="p-3 rounded-lg bg-yellow-900/20 border border-yellow-700">
+                          <div className="flex items-center gap-2">
+                            <Zap className="h-5 w-5 text-yellow-400" />
+                            <span className="text-white font-medium">Double Points Days</span>
+                          </div>
+                          <p className="text-sm text-yellow-300 mt-1">
+                            {rewardsData.specialFeatures.doublePointsDays} available
+                          </p>
                         </div>
-                        <p className="text-sm text-yellow-300 mt-1">
-                          {rewardsData.specialFeatures.doublePointsDays} available
-                        </p>
-                      </div>
-                    )}
-                    {rewardsData.specialFeatures.hasAdvancedAnalytics && (
-                      <div className="p-3 rounded-lg bg-purple-900/20 border border-purple-700">
-                        <div className="flex items-center gap-2">
-                          <BarChart3 className="h-5 w-5 text-purple-400" />
-                          <span className="text-white font-medium">Advanced Analytics</span>
+                      )}
+                      {rewardsData.specialFeatures.hasAdvancedAnalytics && (
+                        <div className="p-3 rounded-lg bg-purple-900/20 border border-purple-700">
+                          <div className="flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5 text-purple-400" />
+                            <span className="text-white font-medium">Advanced Analytics</span>
+                          </div>
+                          <p className="text-sm text-purple-300 mt-1">Unlocked</p>
                         </div>
-                        <p className="text-sm text-purple-300 mt-1">Unlocked</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Active Badges */}
             {rewardsData && rewardsData.activeBadges.length > 0 && (
@@ -447,7 +448,7 @@ export default function RewardsPage() {
                       const canAfford = confirmedPoints >= item.cost
                       const totalPoints = rewardsData?.pointsSummary?.total || rewardsData?.points || 0
                       const wouldAffordWithUnconfirmed = totalPoints >= item.cost
-                      
+
                       return (
                         <div
                           key={item.id}
@@ -455,21 +456,21 @@ export default function RewardsPage() {
                         >
                           <div className="flex items-center justify-between mb-3">
                             <div className="text-2xl">{getItemIcon(item.icon)}</div>
-                            <Badge 
-                              variant="outline" 
-                              className={`${canAfford 
-                                ? 'border-green-500 text-green-400' 
+                            <Badge
+                              variant="outline"
+                              className={`${canAfford
+                                ? 'border-green-500 text-green-400'
                                 : wouldAffordWithUnconfirmed
                                   ? 'border-yellow-500 text-yellow-400'
                                   : 'border-red-500 text-red-400'
-                              }`}
+                                }`}
                             >
                               {item.cost} pts
                             </Badge>
                           </div>
                           <h3 className="font-semibold text-white mb-1">{item.name}</h3>
                           <p className="text-sm text-gray-400 mb-3">{item.description}</p>
-                          
+
                           {!canAfford && wouldAffordWithUnconfirmed && (
                             <div className="mb-3 p-2 rounded bg-yellow-900/20 border border-yellow-700">
                               <p className="text-xs text-yellow-300">
@@ -477,19 +478,18 @@ export default function RewardsPage() {
                               </p>
                             </div>
                           )}
-                          
+
                           <Button
                             onClick={() => handlePurchase(item.id)}
                             disabled={!canAfford || purchasing}
-                            className={`w-full ${
-                              canAfford
+                            className={`w-full ${canAfford
                                 ? 'bg-green-600 hover:bg-green-700'
                                 : 'bg-gray-600 cursor-not-allowed'
-                            }`}
+                              }`}
                           >
-                            {purchasing ? 'Purchasing...' : 
-                             canAfford ? 'Purchase' : 
-                             wouldAffordWithUnconfirmed ? 'Need Confirmed Points' : 'Insufficient Points'}
+                            {purchasing ? 'Purchasing...' :
+                              canAfford ? 'Purchase' :
+                                wouldAffordWithUnconfirmed ? 'Need Confirmed Points' : 'Insufficient Points'}
                           </Button>
                         </div>
                       )
@@ -561,9 +561,8 @@ export default function RewardsPage() {
                         className="flex items-center justify-between p-3 rounded-lg bg-gray-800/30"
                       >
                         <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            transaction.type === 'earned' ? 'bg-green-500/20' : 'bg-red-500/20'
-                          }`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${transaction.type === 'earned' ? 'bg-green-500/20' : 'bg-red-500/20'
+                            }`}>
                             {transaction.type === 'earned' ? (
                               <TrendingUp className="h-4 w-4 text-green-400" />
                             ) : (
@@ -575,13 +574,12 @@ export default function RewardsPage() {
                             <div className="flex items-center gap-2">
                               <p className="text-xs text-gray-500">{formatDate(transaction.date)}</p>
                               {transaction.type === 'earned' && transaction.pointsType && (
-                                <Badge 
-                                  variant="outline" 
-                                  className={`text-xs ${
-                                    transaction.pointsType === 'confirmed' 
-                                      ? 'border-green-500 text-green-400' 
+                                <Badge
+                                  variant="outline"
+                                  className={`text-xs ${transaction.pointsType === 'confirmed'
+                                      ? 'border-green-500 text-green-400'
                                       : 'border-yellow-500 text-yellow-400'
-                                  }`}
+                                    }`}
                                 >
                                   {transaction.pointsType === 'confirmed' ? '✓ Confirmed' : '⏳ Pending'}
                                 </Badge>
@@ -589,9 +587,8 @@ export default function RewardsPage() {
                             </div>
                           </div>
                         </div>
-                        <div className={`font-semibold ${
-                          transaction.type === 'earned' ? 'text-green-400' : 'text-red-400'
-                        }`}>
+                        <div className={`font-semibold ${transaction.type === 'earned' ? 'text-green-400' : 'text-red-400'
+                          }`}>
                           {transaction.type === 'earned' ? '+' : '-'}{transaction.points} pts
                         </div>
                       </div>

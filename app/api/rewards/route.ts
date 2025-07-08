@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server"
 import dbConnect from "@/lib/mongodb"
 import User from "@/models/User"
-import { 
-  calculateLevel, 
-  ACHIEVEMENTS, 
-  REWARD_SHOP_ITEMS, 
+import {
+  calculateLevel,
+  ACHIEVEMENTS,
+  REWARD_SHOP_ITEMS,
   confirmPendingPoints,
-  getUserPointsSummary 
+  getUserPointsSummary
 } from "@/lib/rewards-system"
 
 // GET /api/rewards - Get user's complete rewards data
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-  const email = searchParams.get('email')
+  const email = "test@example.com" // 🔒 Hardcoded temporarily
 
   if (!email) {
     return NextResponse.json({ error: "Email required" }, { status: 400 })
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
       user.rewardPoints = (user.confirmedPoints || 0) + (user.unconfirmedPoints || 0);
       await user.save();
     }
-    
+
     const pointsSummary = getUserPointsSummary(user);
 
     // Get available achievements (not yet earned)
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
 
     // Get purchased item IDs
     const purchasedItemIds = (user.purchasedItems || []).map((item: any) => item.itemId)
-    
+
     // Filter available shop items (not yet purchased)
     const availableShopItems = REWARD_SHOP_ITEMS.filter(
       item => !purchasedItemIds.includes(item.id)
@@ -98,7 +98,9 @@ export async function GET(req: Request) {
 
 // POST /api/rewards/redeem - Redeem reward points for shop items
 export async function POST(req: Request) {
-  const { email, itemId } = await req.json()
+  const { itemId } = await req.json()
+  const email = "test@example.com" // 🔒 use same hardcoded email
+
 
   if (!email || !itemId) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -132,8 +134,8 @@ export async function POST(req: Request) {
     // Check if user has enough confirmed points (only confirmed points can be redeemed)
     const confirmedPoints = user.confirmedPoints || 0;
     if (confirmedPoints < shopItem.cost) {
-      return NextResponse.json({ 
-        error: "Insufficient confirmed points", 
+      return NextResponse.json({
+        error: "Insufficient confirmed points",
         required: shopItem.cost,
         confirmedPoints: confirmedPoints,
         unconfirmedPoints: user.unconfirmedPoints || 0,
