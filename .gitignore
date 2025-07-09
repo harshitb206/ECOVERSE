@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-
+/firebase-functions-sync-prisma\functions\node_modules
 # next.js
 /.next/
 /out/
