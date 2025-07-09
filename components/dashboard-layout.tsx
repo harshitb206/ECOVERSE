@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
   <img src="/logo.png" alt="EcoVerse logo" className="h-10 w-auto" />
-  <span className="font-serif text-3xl font-bold text-green-900">EcoVerse</span>
+  <span className="font-serif text-xl font-bold text-green-900">EcoVerse</span>
 </Link>
 
         </div>
