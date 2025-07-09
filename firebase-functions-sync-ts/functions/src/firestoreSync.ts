@@ -1,48 +1,55 @@
-import * as functions from "firebase-functions";
+import { onDocumentCreated, onDocumentUpdated, onDocumentDeleted } from "firebase-functions/v2/firestore";
 import { connectToMongo } from "./utils/mongo";
 
-const collectionPath = "leaderboard";
+const collectionPath = "leaderboard/{docId}";
 
-export const syncLeaderboardCreate = functions.firestore
-  .document(`${collectionPath}/{docId}`)
-  .onCreate(async (snapshot, context) => {
-    const docId = context.params.docId;
-    const data = snapshot.data();
+// Firestore → MongoDB: Create
+export const syncLeaderboardCreate = onDocumentCreated(collectionPath, async (event) => {
+  const docId = event.params.docId;
+  const data = event.data;
 
-    const db = await connectToMongo();
-    const mongo = db.collection("leaderboard");
+  if (!data) {
+    console.warn(`⚠️ No data found for created doc ${docId}`);
+    return;
+  }
 
-    await mongo.insertOne({
-      firebaseId: docId,
-      ...data,
-    });
+  const db = await connectToMongo();
+  const mongo = db.collection("leaderboard");
 
-    console.log(`📥 Firestore → MongoDB: Created ${docId}`);
+  await mongo.insertOne({
+    firebaseId: docId,
+    ...data,
   });
 
-export const syncLeaderboardUpdate = functions.firestore
-  .document(`${collectionPath}/{docId}`)
-  .onUpdate(async (change, context) => {
-    const docId = context.params.docId;
-    const newData = change.after.data();
+  console.log(`📥 Firestore → MongoDB: Created ${docId}`);
+});
 
-    const db = await connectToMongo();
-    const mongo = db.collection("leaderboard");
+// Firestore → MongoDB: Update
+export const syncLeaderboardUpdate = onDocumentUpdated(collectionPath, async (event) => {
+  const docId = event.params.docId;
+  const newData = event.data?.after;
 
-    await mongo.updateOne({ firebaseId: docId }, { $set: newData });
+  if (!newData) {
+    console.warn(`⚠️ No data found for updated doc ${docId}`);
+    return;
+  }
 
-    console.log(`🔁 Firestore → MongoDB: Updated ${docId}`);
-  });
+  const db = await connectToMongo();
+  const mongo = db.collection("leaderboard");
 
-export const syncLeaderboardDelete = functions.firestore
-  .document(`${collectionPath}/{docId}`)
-  .onDelete(async (snapshot, context) => {
-    const docId = context.params.docId;
+  await mongo.updateOne({ firebaseId: docId }, { $set: newData });
 
-    const db = await connectToMongo();
-    const mongo = db.collection("leaderboard");
+  console.log(`🔁 Firestore → MongoDB: Updated ${docId}`);
+});
 
-    await mongo.deleteOne({ firebaseId: docId });
+// Firestore → MongoDB: Delete
+export const syncLeaderboardDelete = onDocumentDeleted(collectionPath, async (event) => {
+  const docId = event.params.docId;
 
-    console.log(`❌ Firestore → MongoDB: Deleted ${docId}`);
-  });
+  const db = await connectToMongo();
+  const mongo = db.collection("leaderboard");
+
+  await mongo.deleteOne({ firebaseId: docId });
+
+  console.log(`❌ Firestore → MongoDB: Deleted ${docId}`);
+});

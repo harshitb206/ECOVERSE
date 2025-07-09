@@ -1,7 +1,9 @@
-import * as functions from "firebase-functions";
+import { onUserCreated, onUserDeleted } from "firebase-functions/v2/auth";
 import { connectToMongo } from "./utils/mongo";
 
-export const handleUserSignup = functions.auth.user().onCreate(async (user) => {
+// Handle user signup
+export const handleUserSignup = onUserCreated(async (event) => {
+  const user = event.data;
   const db = await connectToMongo();
   const collection = db.collection("users");
 
@@ -16,7 +18,9 @@ export const handleUserSignup = functions.auth.user().onCreate(async (user) => {
   console.log(`✅ Synced new user ${user.uid} to MongoDB`);
 });
 
-export const handleUserDeletion = functions.auth.user().onDelete(async (user) => {
+// Handle user deletion
+export const handleUserDeletion = onUserDeleted(async (event) => {
+  const user = event.data;
   const db = await connectToMongo();
   const collection = db.collection("users");
 

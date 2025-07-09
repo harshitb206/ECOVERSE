@@ -1,43 +1,13 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.syncLeaderboardDelete = exports.syncLeaderboardUpdate = exports.syncLeaderboardCreate = exports.handleUserDeletion = exports.handleUserSignup = void 0;
-const functions = __importStar(require("firebase-functions"));
+const auth_1 = require("firebase-functions/v2/auth");
+const firestore_1 = require("firebase-functions/v2/firestore");
 const mongo_1 = require("./utils/mongo");
+const leaderboardPath = "leaderboard/{docId}";
 // AUTH: onCreate
-exports.handleUserSignup = functions.auth.user().onCreate(async (user) => {
+exports.handleUserSignup = (0, auth_1.onUserCreated)(async (event) => {
+    const user = event.data;
     const db = await (0, mongo_1.connectToMongo)();
     const users = db.collection("users");
     await users.insertOne({
@@ -50,40 +20,48 @@ exports.handleUserSignup = functions.auth.user().onCreate(async (user) => {
     console.log(`✅ Synced new user ${user.uid}`);
 });
 // AUTH: onDelete
-exports.handleUserDeletion = functions.auth.user().onDelete(async (user) => {
+exports.handleUserDeletion = (0, auth_1.onUserDeleted)(async (event) => {
+    const user = event.data;
     const db = await (0, mongo_1.connectToMongo)();
     const users = db.collection("users");
     await users.deleteOne({ uid: user.uid });
     console.log(`🗑️ Deleted user ${user.uid}`);
 });
 // FIRESTORE: onCreate
-exports.syncLeaderboardCreate = functions.firestore
-    .document("leaderboard/{docId}")
-    .onCreate(async (snapshot, context) => {
+exports.syncLeaderboardCreate = (0, firestore_1.onDocumentCreated)(leaderboardPath, async (event) => {
+    const docId = event.params.docId;
+    const data = event.data;
+    if (!data) {
+        console.warn(`⚠️ No data found for created doc ${docId}`);
+        return;
+    }
     const db = await (0, mongo_1.connectToMongo)();
     const mongo = db.collection("leaderboard");
     await mongo.insertOne({
-        firebaseId: context.params.docId,
-        ...snapshot.data(),
+        firebaseId: docId,
+        ...data,
     });
-    console.log(`📥 Firestore → MongoDB: Created ${context.params.docId}`);
+    console.log(`📥 Firestore → MongoDB: Created ${docId}`);
 });
 // FIRESTORE: onUpdate
-exports.syncLeaderboardUpdate = functions.firestore
-    .document("leaderboard/{docId}")
-    .onUpdate(async (change, context) => {
+exports.syncLeaderboardUpdate = (0, firestore_1.onDocumentUpdated)(leaderboardPath, async (event) => {
+    const docId = event.params.docId;
+    const newData = event.data?.after;
+    if (!newData) {
+        console.warn(`⚠️ No data found for updated doc ${docId}`);
+        return;
+    }
     const db = await (0, mongo_1.connectToMongo)();
     const mongo = db.collection("leaderboard");
-    await mongo.updateOne({ firebaseId: context.params.docId }, { $set: change.after.data() });
-    console.log(`🔁 Firestore → MongoDB: Updated ${context.params.docId}`);
+    await mongo.updateOne({ firebaseId: docId }, { $set: newData });
+    console.log(`🔁 Firestore → MongoDB: Updated ${docId}`);
 });
 // FIRESTORE: onDelete
-exports.syncLeaderboardDelete = functions.firestore
-    .document("leaderboard/{docId}")
-    .onDelete(async (snapshot, context) => {
+exports.syncLeaderboardDelete = (0, firestore_1.onDocumentDeleted)(leaderboardPath, async (event) => {
+    const docId = event.params.docId;
     const db = await (0, mongo_1.connectToMongo)();
     const mongo = db.collection("leaderboard");
-    await mongo.deleteOne({ firebaseId: context.params.docId });
-    console.log(`❌ Firestore → MongoDB: Deleted ${context.params.docId}`);
+    await mongo.deleteOne({ firebaseId: docId });
+    console.log(`❌ Firestore → MongoDB: Deleted ${docId}`);
 });
 //# sourceMappingURL=index.js.map

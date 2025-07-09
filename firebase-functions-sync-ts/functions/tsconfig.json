@@ -11,7 +11,8 @@
     "skipLibCheck": true,
     "types": ["node"] ,// ✅ Minimal safe setting
 
-    "noImplicitAny": false
+    "noImplicitAny": false,
+      "typeRoots": ["./node_modules/@types", "./node_modules/firebase-functions"]
   },
   "compileOnSave": true,
   "include": ["src"]
